@@ -1,0 +1,11 @@
+This is a pseudocode for my console. I'm planning to add more as the project progresses!
+
+input console
+
+if console == move then
+    input move
+        try
+            make move
+            write move to console
+        if ValueError then
+            retry
