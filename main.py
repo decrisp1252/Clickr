@@ -1,9 +1,11 @@
 import os
 import chess
+import chess.svg
 
 # Sets up initial variables
 game_started = False
 game_board = None
+chess_svg = False
 
 
 # Generates a board based of the FEN or a new game.
@@ -25,7 +27,12 @@ def setup_game():
             if game_board_f.is_valid():
                 break
             else:
-                print("Gameboard not valid.")
+                print("Game-board not valid.")
+    if chess_svg:
+        game_board_svg = chess.svg.board(game_board_f)
+        svg = open("board.svg", "w")
+        svg.write(game_board_svg)
+        svg.close()
 
     print("Game generated successfully!")
     game_started = True
@@ -40,6 +47,8 @@ def clear():
 
 # Push pieces around the board until the user exits the "program"
 def make_move(game_board_f):
+    if chess_svg:
+        svg = open("board.svg", "w")
     while True:
         print(game_board_f)
         # If there is an end of game outcome, print the result and exit the "program".
@@ -72,18 +81,44 @@ def make_move(game_board_f):
         move = str(input(">"))
         if move == "close":
             print("Closing move program")
+            if chess_svg:
+                svg.close()
             break
         else:
             try:
-                game_board_f.push_san(move)  # Makes the move, or returns a value error
+                game_board_f.push_san(move)  # Makes the move, or returns a value
+                if chess_svg:
+                    game_board_svg = chess.svg.board(game_board_f)
+                    svg.write(game_board_svg)
             except ValueError:  # Adds exception for a value error
                 print("Value Error! Check your move and try again.")
     clear()
 
 
+def svg_mode(game_board_f, chess_svg_f):
+    if not chess_svg_f:
+        if game_started:
+            game_board_svg = chess.svg.board(game_board_f)
+            svg = open("board.svg", "w")
+            svg.write(game_board_svg)
+            svg.close()
+            print("Game found, board generated.")
+
+        chess_svg_f = True
+        print("SVG mode activated")
+    else:
+        chess_svg_f = False
+        print("SVG mode deactivated")
+    return chess_svg_f
+
+
+def shutdown():
+    os.remove("board.svg")
+    quit()
+
 # Main console function
 def console():
-    global game_board
+    global game_board, chess_svg
     while True:
         console_menu = str(input(">"))
         console_menu.lower()
@@ -96,16 +131,19 @@ def console():
             clear()
         elif console_menu == "newgame":
             game_board = setup_game()
+        elif console_menu == "svg":
+            svg_mode(game_board, chess_svg)
         elif console_menu == "help":
-            print("""            newgame - Generates a new game with the default setup or a generated FEN
-            move - Makes a move in the game
-            board - Displays the active board
-            clear - Clears the terminal
-            shutdown - Closes the program
-            help - Displays all available commands
-            """)
+            print("""newgame - Generates a new game with the default setup or a generated FEN
+move - Makes a move in the game
+board - Displays the active board
+svg - activates svg mode
+clear - Clears the terminal
+shutdown - Closes the program
+help - Displays all available commands
+""")
         elif console_menu == "shutdown":
-            quit()
+            shutdown()
         elif console_menu == "hello":
             print("Hi!")
         else:
